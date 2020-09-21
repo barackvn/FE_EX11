@@ -11,24 +11,22 @@
                                 <div class="col-xs-12">
                                     <table class="table table-condensed"
                                         style="border-bottom: 0px solid white !important;width:100%;text-align:center !important;">
-                                        <thead>
+                                         <thead>
                                             <tr>
 
-                                                <th colspan="2" style="text-align:center !important;">
-                                                    <img t-att-src="o.get_codqr_url(str(o.name))"
-                                                        style="max-height:4.5cm;max-width:3.5cm;" />
+                                                <th style="text-align:center !important;font-size:22px;font-family:'Arial';vertical-align: middle !important;line-height:10px;;height:4.6cm">
+
+                                                    <p style="padding-top:42px !important"><span t-esc="o.product_id.as_sku"/></p>
+                                                </th>
+                                                <th colspan="2" style="text-align:center !important;height:4.6cm">
+                                                 
+                                                    <img t-att-src="o.get_codqr_url(str(o.name))" style="max-height:4.5cm;max-width:3.5cm;"/>
 
                                                 </th>
-                                            </tr>
+                                          
 
-                                            <tr>
-                                                <th style="text-align:center !important;">
-
-                                                    <span t-esc="o.product_id.as_sku" />
-                                                </th>
-
-                                                <th style="text-align:center !important;">
-                                                    <span t-esc="o.ref" />
+                                                <th style="text-align:center !important;font-size:22px;font-family:'Arial';vertical-align: middle !important;">
+                                                    <p style="padding-top:42px !important"><span t-esc="o.ref"/> </p>
 
                                                 </th>
                                             </tr>

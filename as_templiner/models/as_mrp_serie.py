@@ -19,9 +19,9 @@ class MrpProduction(models.Model):
     def open_produce_product(self):
         self.ensure_one()
         barcode= self.product_id.as_sku
-        correlativo= self.env['ir.sequence'].next_by_code('mrp.series')
         action = self.env.ref('mrp.act_mrp_product_produce').read()[0]
         if not self.final_product_lot:
+            correlativo= self.env['ir.sequence'].next_by_code('mrp.series')
             self.final_product_lot = self.env['stock.production.lot'].create({
                 'name': str(barcode)+str(correlativo),
                 'product_id': self.product_id.id,
@@ -40,8 +40,8 @@ class MrpProduction(models.Model):
     def create(self, vals):
         mrp = super(MrpProduction, self).create(vals)
         barcode= mrp.product_id.as_sku
-        correlativo= self.env['ir.sequence'].next_by_code('mrp.series')
         if not mrp.final_product_lot:
+            correlativo= self.env['ir.sequence'].next_by_code('mrp.series')
             mrp.final_product_lot = self.env['stock.production.lot'].create({
                 'name': str(barcode)+str(correlativo),
                 'product_id': mrp.product_id.id,
@@ -54,8 +54,8 @@ class MrpProduction(models.Model):
     def write(self, vals):
         result = super(MrpProduction, self).write(vals)
         barcode= self.product_id.as_sku
-        correlativo= self.env['ir.sequence'].next_by_code('mrp.series')
         if not self.final_product_lot:
+            correlativo= self.env['ir.sequence'].next_by_code('mrp.series')
             self.final_product_lot = self.env['stock.production.lot'].create({
                 'name': str(barcode)+str(correlativo),
                 'product_id': self.product_id.id,

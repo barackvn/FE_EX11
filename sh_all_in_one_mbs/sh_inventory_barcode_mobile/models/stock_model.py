@@ -3,7 +3,12 @@
 
 from odoo import models, fields, api, _
 from odoo.exceptions import Warning,UserError
+import logging
 
+from collections import OrderedDict
+
+
+_logger = logging.getLogger(__name__)
 class stock_move(models.Model):
     _inherit = "stock.move"
     
@@ -44,7 +49,7 @@ class stock_move(models.Model):
             if self.env.user.company_id.sudo().sh_stock_bm_is_notify_on_fail:
                 message = _(CODE_SOUND_FAIL + 'You can not scan item in %s state.')% (value)
  
-                self.env.user.notify_warning(message, title=_('Failed'), sticky=False)                
+                # self.env.user.notify_warning(message, title=_('Failed'), sticky=False)                
                 
             return
                    
@@ -57,7 +62,7 @@ class stock_move(models.Model):
                         if self.env.user.company_id.sudo().sh_stock_bm_is_notify_on_success:
                             message = _(CODE_SOUND_SUCCESS + 'Product: %s Qty: %s') % (self.product_id.name,line.qty_done)
 
-                            self.env.user.notify_info(message, title=_('Succeed'), sticky=False)   
+                            # self.env.user.notify_info(message, title=_('Succeed'), sticky=False)   
                                                    
                         if self.quantity_done == self.product_uom_qty + 1:                      
 #                             warning_mess = {
@@ -68,14 +73,14 @@ class stock_move(models.Model):
                             if self.env.user.company_id.sudo().sh_stock_bm_is_notify_on_fail:
                                 message = _(CODE_SOUND_FAIL + 'Becareful! Quantity exceed than initial demand!')
                                
-                                self.env.user.notify_warning(message, title=_('Alert!'), sticky=False)                                                     
+                                # self.env.user.notify_warning(message, title=_('Alert!'), sticky=False)                                                     
                                                          
                         break
                     else:
                         if self.env.user.company_id.sudo().sh_stock_bm_is_notify_on_fail:
                             message = _(CODE_SOUND_FAIL + 'Scanned Internal Reference/Barcode not exist in any product!')
                             
-                            self.env.user.notify_warning(message, title=_('Failed'), sticky=False)                            
+                            # self.env.user.notify_warning(message, title=_('Failed'), sticky=False)                            
                             
                         return                              
                      
@@ -85,7 +90,7 @@ class stock_move(models.Model):
                         
                         if self.env.user.company_id.sudo().sh_stock_bm_is_notify_on_success:
                             message = _(CODE_SOUND_SUCCESS + 'Product: %s Qty: %s') % (self.product_id.name,line.qty_done)
-                            self.env.user.notify_info(message, title=_('Succeed'), sticky=False) 
+                            # self.env.user.notify_info(message, title=_('Succeed'), sticky=False) 
                                                     
                         if self.quantity_done == self.product_uom_qty + 1:                      
 #                             warning_mess = {
@@ -97,13 +102,13 @@ class stock_move(models.Model):
                             if self.env.user.company_id.sudo().sh_stock_bm_is_notify_on_fail:
                                 message = _(CODE_SOUND_FAIL + 'Becareful! Quantity exceed than initial demand!')
                                 
-                                self.env.user.notify_warning(message, title=_('Alert!'), sticky=False)                                                                    
+                                # self.env.user.notify_warning(message, title=_('Alert!'), sticky=False)                                                                    
                         break
                     else:
                         if self.env.user.company_id.sudo().sh_stock_bm_is_notify_on_fail:
                             message = _(CODE_SOUND_FAIL + 'Scanned Internal Reference/Barcode not exist in any product!')
                            
-                            self.env.user.notify_warning(message, title=_('Failed'), sticky=False)                            
+                            # self.env.user.notify_warning(message, title=_('Failed'), sticky=False)                            
                             
                         return                             
                     
@@ -112,31 +117,35 @@ class stock_move(models.Model):
                         line.qty_done += 1
                         if self.env.user.company_id.sudo().sh_stock_bm_is_notify_on_success:
                             message = _(CODE_SOUND_SUCCESS + 'Product: %s Qty: %s') % (self.product_id.name,line.qty_done)
-                            self.env.user.notify_info(message, title=_('Succeed'), sticky=False) 
+                            # self.env.user.notify_info(message, title=_('Succeed'), sticky=False) 
                                                     
                         if self.quantity_done == self.product_uom_qty + 1:                        
                             if self.env.user.company_id.sudo().sh_stock_bm_is_notify_on_fail:
                                 message = _(CODE_SOUND_FAIL + 'Becareful! Quantity exceed than initial demand!')
                                 
-                                self.env.user.notify_warning(message, title=_('Alert!'), sticky=False)                       
+                                # self.env.user.notify_warning(message, title=_('Alert!'), sticky=False)                       
                                                       
                         break
                     else:
                         if self.env.user.company_id.sudo().sh_stock_bm_is_notify_on_fail:
                             message = _(CODE_SOUND_FAIL + 'Scanned Internal Reference/Barcode not exist in any product!')
                             
-                            self.env.user.notify_warning(message, title=_('Alert!'), sticky=False)
+                            # self.env.user.notify_warning(message, title=_('Alert!'), sticky=False)
                             
                         return       
                                                              
                      
                 elif self.env.user.company_id.sudo().sh_stock_barcode_mobile_type == 'all':
-                    if self.product_id.barcode == self.sh_stock_move_barcode_mobile or self.product_id.default_code == self.sh_stock_move_barcode_mobile or self.product_id.sh_qr_code == self.sh_stock_move_barcode_mobile:
+                    lot = 0
+                    lote = self.env["stock.production.lot"].search([('name','=',self.sh_stock_move_barcode_mobile)])
+                    if lote:
+                        lot = lote.product_id.id     
+                    if self.product_id.barcode == self.sh_stock_move_barcode_mobile or self.product_id.default_code == self.sh_stock_move_barcode_mobile or self.product_id.sh_qr_code == self.sh_stock_move_barcode_mobile or self.product_id.id == lot:
                         line.qty_done += 1
 
                         if self.env.user.company_id.sudo().sh_stock_bm_is_notify_on_success:
                             message = _(CODE_SOUND_SUCCESS + 'Product: %s Qty: %s') % (self.product_id.name,line.qty_done)
-                            self.env.user.notify_info(message, title=_('Succeed'), sticky=False) 
+                            # self.env.user.notify_info(message, title=_('Succeed'), sticky=False) 
                                                     
                         if self.quantity_done == self.product_uom_qty + 1:                    
 #                             warning_mess = {
@@ -146,20 +155,20 @@ class stock_move(models.Model):
 #                             return {'warning': warning_mess}   
                             if self.env.user.company_id.sudo().sh_stock_bm_is_notify_on_fail:
                                 message = _(CODE_SOUND_FAIL + 'Becareful! Quantity exceed than initial demand!')
-                                self.env.user.notify_warning(message, title=_('Alert!'), sticky=False)     
+                                # self.env.user.notify_warning(message, title=_('Alert!'), sticky=False)     
                                                                
                         break
                     else:
                         if self.env.user.company_id.sudo().sh_stock_bm_is_notify_on_fail:
                             message = _(CODE_SOUND_FAIL + 'Scanned Internal Reference/Barcode not exist in any product!')
-                            self.env.user.notify_warning(message, title=_('Alert!'), sticky=False)
+                            # self.env.user.notify_warning(message, title=_('Alert!'), sticky=False)
                             
                         return                                
                  
         else:
             if self.env.user.company_id.sudo().sh_stock_bm_is_notify_on_fail:
                 message = _(CODE_SOUND_FAIL + 'Pls add all product items in line than rescan.')
-                self.env.user.notify_warning(message, title=_('Alert!'), sticky=False)
+                # self.env.user.notify_warning(message, title=_('Alert!'), sticky=False)
                 
             return   
          
@@ -203,7 +212,7 @@ class stock_picking(models.Model):
             if self.env.user.company_id.sudo().sh_stock_bm_is_notify_on_fail:
                 message = _(CODE_SOUND_FAIL + 'You can not scan item in %s state.')% (value)
                                 
-                self.env.user.notify_warning(message, title=_('Failed'), sticky=False)           
+                # self.env.user.notify_warning(message, title=_('Failed'), sticky=False)           
             
             return              
             
@@ -225,27 +234,31 @@ class stock_picking(models.Model):
                 domain = [("sh_qr_code","=",self.sh_stock_barcode_mobile)]   
                                 
             elif self.env.user.company_id.sudo().sh_stock_barcode_mobile_type == 'all':
+                lot = 0
+                lote = self.env["stock.production.lot"].search([('name','=',self.sh_stock_barcode_mobile)])
+                if lote:
+                    lot = lote.product_id.id     
                 search_mls = self.move_lines.filtered(lambda ml: ml.product_id.barcode == self.sh_stock_barcode_mobile 
                                                                          or ml.product_id.default_code == self.sh_stock_barcode_mobile
                                                                          or ml.product_id.sh_qr_code == self.sh_stock_barcode_mobile
-                                                                         )
-                domain = ["|","|",
+                                                                         or ml.product_id.id == lot)
+                domain = ["|","|","|",
                     ("default_code","=",self.sh_stock_barcode_mobile),
                     ("barcode","=",self.sh_stock_barcode_mobile),
-                    ("sh_qr_code","=",self.sh_stock_barcode_mobile)                    
+                    ("sh_qr_code","=",self.sh_stock_barcode_mobile),
+                    ("id","=",lot),                   
                 ]  
                                                 
-
             if search_mls:
                 for move_line in search_mls:
-                    
-                    if move_line.show_details_visible:
-                        if self.env.user.company_id.sudo().sh_stock_bm_is_notify_on_fail:
-                            message = _(CODE_SOUND_FAIL + 'You can not scan product item for lot/serial directly here, Pls click detail button (at end each line) and than rescan your product item.')
+                    _logger.debug('\n\n\n\n\nencontro move')
+                    # if move_line.show_details_visible:
+                    #     if self.env.user.company_id.sudo().sh_stock_bm_is_notify_on_fail:
+                    #         message = _(CODE_SOUND_FAIL + 'You can not scan product item for lot/serial directly here, Pls click detail button (at end each line) and than rescan your product item.')
                             
-                            self.env.user.notify_warning(message, title=_('Failed'), sticky=False)                              
+                    #         # self.env.user.notify_warning(message, title=_('Failed'), sticky=False)                              
                             
-                        return
+                    #     return
                             
                             
                                       
@@ -253,31 +266,33 @@ class stock_picking(models.Model):
                         move_line.product_uom_qty += 1
                         if self.env.user.company_id.sudo().sh_stock_bm_is_notify_on_success:
                             message = _(CODE_SOUND_SUCCESS + 'Product: %s Qty: %s') % (move_line.product_id.name,move_line.product_uom_qty)
-
-                            self.env.user.notify_info(message, title=_('Succeed'), sticky=False)                                                       
+                            _logger.debug('\n\n\n\n\nentro a aumento cantidad')
+                            _logger.debug(move_line.product_uom_qty)
+                            # self.env.user.notify_info(message, title=_('Succeed'), sticky=False)                                                       
                                                     
                         
                     else:
                         move_line.quantity_done = move_line.quantity_done + 1
                         if self.env.user.company_id.sudo().sh_stock_bm_is_notify_on_success:
                             message = _(CODE_SOUND_SUCCESS + 'Product: %s Qty: %s') % (move_line.product_id.name,move_line.quantity_done)
-                            
-                            self.env.user.notify_info(message, title=_('Succeed'), sticky=False)    
+                            _logger.debug('entro a aumento quantity_done')
+                            # self.env.user.notify_info(message, title=_('Succeed'), sticky=False)    
                             
                                                                     
                         if move_line.quantity_done == move_line.product_uom_qty + 1:                    
                             if self.env.user.company_id.sudo().sh_stock_bm_is_notify_on_fail:
                                 message = _(CODE_SOUND_FAIL + 'Becareful! Quantity exceed than initial demand!')
-                                self.env.user.notify_warning(message, title=_('Failed'), sticky=False)
+                                # self.env.user.notify_warning(message, title=_('Failed'), sticky=False)
                     
                     break
                                     
             elif self.state == 'draft':
+                _logger.debug('\n\n\n\n\nentro a borrador crear  producto')
                 if self.env.user.company_id.sudo().sh_stock_bm_is_add_product:
                     if not self.picking_type_id:
                         if self.env.user.company_id.sudo().sh_stock_bm_is_notify_on_fail:
                             message = _(CODE_SOUND_FAIL + 'You must first select a Operation Type.')
-                            self.env.user.notify_warning(message, title=_('Failed'), sticky=False)
+                            # self.env.user.notify_warning(message, title=_('Failed'), sticky=False)
                             
                         return                   
                         
@@ -307,27 +322,28 @@ class stock_picking(models.Model):
                         if self.env.user.company_id.sudo().sh_stock_bm_is_notify_on_success:
                             message = _(CODE_SOUND_SUCCESS + 'Product: %s Qty: %s') % (new_order_line.product_id.name,new_order_line.product_uom_qty)
                             
-                            self.env.user.notify_info(message, title=_('Succeed'), sticky=False)                               
+                            # self.env.user.notify_info(message, title=_('Succeed'), sticky=False)                               
                                                                          
                                             
                     else: 
                         if self.env.user.company_id.sudo().sh_stock_bm_is_notify_on_fail:
                             message = _(CODE_SOUND_FAIL + 'Scanned Internal Reference/Barcode not exist in any product!')
-                            self.env.user.notify_warning(message, title=_('Failed'), sticky=False)
+                            # self.env.user.notify_warning(message, title=_('Failed'), sticky=False)
                             
                         return                                          
                                            
                 else:
                     if self.env.user.company_id.sudo().sh_stock_bm_is_notify_on_fail:
                         message = _(CODE_SOUND_FAIL + 'Scanned Internal Reference/Barcode not exist in any product!')
-                        self.env.user.notify_warning(message, title=_('Failed'), sticky=False)
+                        # self.env.user.notify_warning(message, title=_('Failed'), sticky=False)
                         
                     return    
             else:
+                _logger.debug('\n\n\n\n\nScanned Internal Reference/Barcode not exist in any product')
                 if self.env.user.company_id.sudo().sh_stock_bm_is_notify_on_fail:
                     message = _(CODE_SOUND_FAIL + 'Scanned Internal Reference/Barcode not exist in any product!')
                     
-                    self.env.user.notify_warning(message, title=_('Failed'), sticky=False)
+                    # self.env.user.notify_warning(message, title=_('Failed'), sticky=False)
                     
                 return             
         
