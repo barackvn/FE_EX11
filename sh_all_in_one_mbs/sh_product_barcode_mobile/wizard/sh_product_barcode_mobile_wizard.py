@@ -32,28 +32,28 @@ class sh_product_barcode_mobile_wizard(models.TransientModel):
         
         if self.sh_product_barcode_mobile in ['',"",False,None]:
             return
-        
+
         CODE_SOUND_SUCCESS = ""
         CODE_SOUND_FAIL = ""
         if self.env.user.company_id.sudo().sh_product_bm_is_sound_on_success:
             CODE_SOUND_SUCCESS = "SH_BARCODE_MOBILE_SUCCESS_"
-        
+
         if self.env.user.company_id.sudo().sh_product_bm_is_sound_on_fail:
             CODE_SOUND_FAIL = "SH_BARCODE_MOBILE_FAIL_"       
-            
-            
-                 
-        if self and self.sh_product_barcode_mobile:          
+
+
+
+        if self and self.sh_product_barcode_mobile:      
             domain = []
             if self.env.user.company_id.sudo().sh_product_barcode_mobile_type == "barcode":            
                 domain = [("barcode","=",self.sh_product_barcode_mobile)]
-              
+
             elif self.env.user.company_id.sudo().sh_product_barcode_mobile_type == "int_ref":              
                 domain = [("default_code","=",self.sh_product_barcode_mobile)]
-                  
+
             elif self.env.user.company_id.sudo().sh_product_barcode_mobile_type == "sh_qr_code":              
                 domain = [("sh_qr_code","=",self.sh_product_barcode_mobile)]
-                                  
+
             elif self.env.user.company_id.sudo().sh_product_barcode_mobile_type == "all":            
                 domain = ["|","|",
                     ("default_code","=",self.sh_product_barcode_mobile),
@@ -62,16 +62,15 @@ class sh_product_barcode_mobile_wizard(models.TransientModel):
                 ]                                             
 
 
-            search_product = self.env["product.product"].search(domain, limit = 1)
-            if search_product:
-
-
+            if search_product := self.env["product.product"].search(
+                domain, limit=1
+            ):
                 msg = '''<div><h4>
                 Product: <font color="red">%(display_name)s </font>
                 ''' % {
                     'display_name': search_product.display_name,
                 }
-                
+
                 if self.env.user.company_id.sudo().sh_product_bm_is_default_code:
                     msg += '''
                     <br/><br/>
@@ -95,7 +94,7 @@ class sh_product_barcode_mobile_wizard(models.TransientModel):
                     '''   % {
                     'qty_available':search_product.qty_available,
                     }  
-                    
+
                 if self.env.user.company_id.sudo().sh_product_bm_is_virtual_available and search_product.type == 'product':
                     msg += '''
                     <br/><br/>
@@ -103,23 +102,25 @@ class sh_product_barcode_mobile_wizard(models.TransientModel):
                     '''   % {
                     'virtual_available':search_product.virtual_available,
                     }  
-                    
+
                 msg += '''
                 </div></h4>
                 '''
-                
+
                 self.post_msg = msg
-                                
+
                 if self.env.user.company_id.sudo().sh_product_bm_is_notify_on_success:
-                    message = _(CODE_SOUND_SUCCESS + 'Product: %s') % (search_product.display_name)                        
+                    message = _(f'{CODE_SOUND_SUCCESS}Product: %s') % search_product.display_name
                     self.env.user.notify_info(message, title=_('Succeed'), sticky=False)                
-                
-                  
+
+
             else:
                 self.post_msg = False
-                
+
                 if self.env.user.company_id.sudo().sh_product_bm_is_notify_on_fail:    
-                    message = _(CODE_SOUND_FAIL + 'Scanned Internal Reference/Barcode not exist in any product!')                  
+                    message = _(
+                        f'{CODE_SOUND_FAIL}Scanned Internal Reference/Barcode not exist in any product!'
+                    )
                     self.env.user.notify_warning(message, title=_('Failed'), sticky=False)   
                  
                 

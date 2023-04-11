@@ -28,10 +28,7 @@ class AccountGroup(models.Model):
     @api.depends('parent_id', 'parent_id.level')
     def _compute_level(self):
         for group in self:
-            if not group.parent_id:
-                group.level = 0
-            else:
-                group.level = group.parent_id.level + 1
+            group.level = group.parent_id.level + 1 if group.parent_id else 0
 
     @api.multi
     @api.depends('code_prefix', 'account_ids', 'account_ids.code',
@@ -40,7 +37,7 @@ class AccountGroup(models.Model):
         account_obj = self.env['account.account']
         accounts = account_obj.search([])
         for group in self:
-            prefix = group.code_prefix if group.code_prefix else group.name
+            prefix = group.code_prefix or group.name
             gr_acc = accounts.filtered(
                 lambda a: a.code.startswith(prefix)).ids
             group.compute_account_ids = [(6, 0, gr_acc)]

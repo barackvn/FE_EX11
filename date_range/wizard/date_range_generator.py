@@ -84,8 +84,7 @@ class DateRangeGenerator(models.TransientModel):
 
     @api.multi
     def action_apply(self):
-        date_ranges = self._compute_date_ranges()
-        if date_ranges:
+        if date_ranges := self._compute_date_ranges():
             for dr in date_ranges:
                 self.env['date.range'].create(dr)
         return self.env['ir.actions.act_window'].for_xml_id(
@@ -100,14 +99,15 @@ class DateRangeGenerator(models.TransientModel):
         if self.type_id:
             domain.append(('type_id', '=', self.type_id.parent_type_id.id))
         if self.date_start:
-            domain.append('|')
-            domain.append(('date_start', '<=', self.date_start))
-            domain.append(('date_start', '=', False))
-        if domain:
-            # If user did not select a parent already, autoselect the last
-            # (ordered by date_start) or only parent that applies.
-            if self.type_id and self.date_start and not self.parent_id:
-                possible_parent = date_range.search(
-                    domain, limit=1, order='date_start desc')
-                self.parent_id = possible_parent  # can be empty!
+            domain.extend(
+                (
+                    '|',
+                    ('date_start', '<=', self.date_start),
+                    ('date_start', '=', False),
+                )
+            )
+        if domain and self.type_id and self.date_start and not self.parent_id:
+            possible_parent = date_range.search(
+                domain, limit=1, order='date_start desc')
+            self.parent_id = possible_parent  # can be empty!
         return {'domain': {'parent_id': domain}}

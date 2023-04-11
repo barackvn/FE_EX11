@@ -50,7 +50,7 @@ class OpenItemsXslx(models.AbstractModel):
                      'type': 'amount_currency',
                      'width': 14},
             }
-            res = {**res, **foreign_currency}
+            res |= foreign_currency
         return res
 
     def _get_report_filters(self, report):
@@ -81,7 +81,7 @@ class OpenItemsXslx(models.AbstractModel):
         # For each account
         for account in report.account_ids:
             # Write account title
-            self.write_array_title(account.code + ' - ' + account.name)
+            self.write_array_title(f'{account.code} - {account.name}')
 
             # For each partner
             for partner in account.partner_ids:
@@ -114,6 +114,6 @@ class OpenItemsXslx(models.AbstractModel):
             label = _('Partner ending balance')
             my_object.currency_id = my_object.report_account_id.currency_id
         elif type_object == 'account':
-            name = my_object.code + ' - ' + my_object.name
+            name = f'{my_object.code} - {my_object.name}'
             label = _('Ending balance')
         super(OpenItemsXslx, self).write_ending_balance(my_object, name, label)

@@ -116,8 +116,7 @@ class VATReportCompute(models.TransientModel):
         result = {}
         rcontext = {}
         context = dict(self.env.context)
-        report = self.browse(context.get('active_id'))
-        if report:
+        if report := self.browse(context.get('active_id')):
             rcontext['o'] = report
             result['html'] = self.env.ref(
                 'account_financial_report.report_vat_report').render(

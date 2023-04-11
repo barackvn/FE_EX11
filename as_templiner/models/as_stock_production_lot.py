@@ -44,10 +44,7 @@ class astockproductionlot(models.Model):
         (https://tools.ietf.org/html/rfc2397) for all kind of supported images
         (PNG, GIF, JPG and SVG), defaulting on PNG type if not mimetype detected.
         """
-        return 'data:image/%s;base64,%s' % (
-            FILETYPE_BASE64_MAGICWORD.get(base64_source[:1], 'png'),
-            base64_source.decode(),
-        )
+        return f"data:image/{FILETYPE_BASE64_MAGICWORD.get(base64_source[:1], 'png')};base64,{base64_source.decode()}"
 
     def get_codqr_url(self, cadena):
         qr= self.get_qrcode(cadena)

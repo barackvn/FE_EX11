@@ -15,108 +15,138 @@ class AgedPartnerBalanceXslx(models.AbstractModel):
         return self._get_report_complete_name(report, report_name)
 
     def _get_report_columns(self, report):
-        if not report.show_move_line_details:
-            return {
+        return (
+            {
+                0: {'header': _('Date'), 'field': 'date', 'width': 11},
+                1: {'header': _('Entry'), 'field': 'entry', 'width': 18},
+                2: {'header': _('Journal'), 'field': 'journal', 'width': 8},
+                3: {'header': _('Account'), 'field': 'account', 'width': 9},
+                4: {'header': _('Partner'), 'field': 'partner', 'width': 25},
+                5: {'header': _('Ref - Label'), 'field': 'label', 'width': 40},
+                6: {'header': _('Due date'), 'field': 'date_due', 'width': 11},
+                7: {
+                    'header': _('Residual'),
+                    'field': 'amount_residual',
+                    'field_footer_total': 'cumul_amount_residual',
+                    'field_final_balance': 'amount_residual',
+                    'type': 'amount',
+                    'width': 14,
+                },
+                8: {
+                    'header': _('Current'),
+                    'field': 'current',
+                    'field_footer_total': 'cumul_current',
+                    'field_footer_percent': 'percent_current',
+                    'field_final_balance': 'current',
+                    'type': 'amount',
+                    'width': 14,
+                },
+                9: {
+                    'header': _(u'Age ≤ 30 d.'),
+                    'field': 'age_30_days',
+                    'field_footer_total': 'cumul_age_30_days',
+                    'field_footer_percent': 'percent_age_30_days',
+                    'field_final_balance': 'age_30_days',
+                    'type': 'amount',
+                    'width': 14,
+                },
+                10: {
+                    'header': _(u'Age ≤ 60 d.'),
+                    'field': 'age_60_days',
+                    'field_footer_total': 'cumul_age_60_days',
+                    'field_footer_percent': 'percent_age_60_days',
+                    'field_final_balance': 'age_60_days',
+                    'type': 'amount',
+                    'width': 14,
+                },
+                11: {
+                    'header': _(u'Age ≤ 90 d.'),
+                    'field': 'age_90_days',
+                    'field_footer_total': 'cumul_age_90_days',
+                    'field_footer_percent': 'percent_age_90_days',
+                    'field_final_balance': 'age_90_days',
+                    'type': 'amount',
+                    'width': 14,
+                },
+                12: {
+                    'header': _(u'Age ≤ 120 d.'),
+                    'field': 'age_120_days',
+                    'field_footer_total': 'cumul_age_120_days',
+                    'field_footer_percent': 'percent_age_120_days',
+                    'field_final_balance': 'age_120_days',
+                    'type': 'amount',
+                    'width': 14,
+                },
+                13: {
+                    'header': _('Older'),
+                    'field': 'older',
+                    'field_footer_total': 'cumul_older',
+                    'field_footer_percent': 'percent_older',
+                    'field_final_balance': 'older',
+                    'type': 'amount',
+                    'width': 14,
+                },
+            }
+            if report.show_move_line_details
+            else {
                 0: {'header': _('Partner'), 'field': 'partner', 'width': 70},
-                1: {'header': _('Residual'),
+                1: {
+                    'header': _('Residual'),
                     'field': 'amount_residual',
                     'field_footer_total': 'cumul_amount_residual',
                     'type': 'amount',
-                    'width': 14},
-                2: {'header': _('Current'),
+                    'width': 14,
+                },
+                2: {
+                    'header': _('Current'),
                     'field': 'current',
                     'field_footer_total': 'cumul_current',
                     'field_footer_percent': 'percent_current',
                     'type': 'amount',
-                    'width': 14},
-                3: {'header': _(u'Age ≤ 30 d.'),
+                    'width': 14,
+                },
+                3: {
+                    'header': _(u'Age ≤ 30 d.'),
                     'field': 'age_30_days',
                     'field_footer_total': 'cumul_age_30_days',
                     'field_footer_percent': 'percent_age_30_days',
                     'type': 'amount',
-                    'width': 14},
-                4: {'header': _(u'Age ≤ 60 d.'),
+                    'width': 14,
+                },
+                4: {
+                    'header': _(u'Age ≤ 60 d.'),
                     'field': 'age_60_days',
                     'field_footer_total': 'cumul_age_60_days',
                     'field_footer_percent': 'percent_age_60_days',
                     'type': 'amount',
-                    'width': 14},
-                5: {'header': _(u'Age ≤ 90 d.'),
+                    'width': 14,
+                },
+                5: {
+                    'header': _(u'Age ≤ 90 d.'),
                     'field': 'age_90_days',
                     'field_footer_total': 'cumul_age_90_days',
                     'field_footer_percent': 'percent_age_90_days',
                     'type': 'amount',
-                    'width': 14},
-                6: {'header': _(u'Age ≤ 120 d.'),
+                    'width': 14,
+                },
+                6: {
+                    'header': _(u'Age ≤ 120 d.'),
                     'field': 'age_120_days',
                     'field_footer_total': 'cumul_age_120_days',
                     'field_footer_percent': 'percent_age_120_days',
                     'type': 'amount',
-                    'width': 14},
-                7: {'header': _('Older'),
+                    'width': 14,
+                },
+                7: {
+                    'header': _('Older'),
                     'field': 'older',
                     'field_footer_total': 'cumul_older',
                     'field_footer_percent': 'percent_older',
                     'type': 'amount',
-                    'width': 14},
+                    'width': 14,
+                },
             }
-        return {
-            0: {'header': _('Date'), 'field': 'date', 'width': 11},
-            1: {'header': _('Entry'), 'field': 'entry', 'width': 18},
-            2: {'header': _('Journal'), 'field': 'journal', 'width': 8},
-            3: {'header': _('Account'), 'field': 'account', 'width': 9},
-            4: {'header': _('Partner'), 'field': 'partner', 'width': 25},
-            5: {'header': _('Ref - Label'), 'field': 'label', 'width': 40},
-            6: {'header': _('Due date'), 'field': 'date_due', 'width': 11},
-            7: {'header': _('Residual'),
-                'field': 'amount_residual',
-                'field_footer_total': 'cumul_amount_residual',
-                'field_final_balance': 'amount_residual',
-                'type': 'amount',
-                'width': 14},
-            8: {'header': _('Current'),
-                'field': 'current',
-                'field_footer_total': 'cumul_current',
-                'field_footer_percent': 'percent_current',
-                'field_final_balance': 'current',
-                'type': 'amount',
-                'width': 14},
-            9: {'header': _(u'Age ≤ 30 d.'),
-                'field': 'age_30_days',
-                'field_footer_total': 'cumul_age_30_days',
-                'field_footer_percent': 'percent_age_30_days',
-                'field_final_balance': 'age_30_days',
-                'type': 'amount',
-                'width': 14},
-            10: {'header': _(u'Age ≤ 60 d.'),
-                 'field': 'age_60_days',
-                 'field_footer_total': 'cumul_age_60_days',
-                 'field_footer_percent': 'percent_age_60_days',
-                 'field_final_balance': 'age_60_days',
-                 'type': 'amount',
-                 'width': 14},
-            11: {'header': _(u'Age ≤ 90 d.'),
-                 'field': 'age_90_days',
-                 'field_footer_total': 'cumul_age_90_days',
-                 'field_footer_percent': 'percent_age_90_days',
-                 'field_final_balance': 'age_90_days',
-                 'type': 'amount',
-                 'width': 14},
-            12: {'header': _(u'Age ≤ 120 d.'),
-                 'field': 'age_120_days',
-                 'field_footer_total': 'cumul_age_120_days',
-                 'field_footer_percent': 'percent_age_120_days',
-                 'field_final_balance': 'age_120_days',
-                 'type': 'amount',
-                 'width': 14},
-            13: {'header': _('Older'),
-                 'field': 'older',
-                 'field_footer_total': 'cumul_older',
-                 'field_footer_percent': 'percent_older',
-                 'field_final_balance': 'older',
-                 'type': 'amount',
-                 'width': 14},
-        }
+        )
 
     def _get_report_filters(self, report):
         return [
@@ -133,7 +163,7 @@ class AgedPartnerBalanceXslx(models.AbstractModel):
         return 3
 
     def _get_col_pos_footer_label(self, report):
-        return 0 if not report.show_move_line_details else 5
+        return 5 if report.show_move_line_details else 0
 
     def _get_col_count_final_balance_name(self):
         return 5
@@ -146,7 +176,7 @@ class AgedPartnerBalanceXslx(models.AbstractModel):
             # For each account
             for account in report.account_ids:
                 # Write account title
-                self.write_array_title(account.code + ' - ' + account.name)
+                self.write_array_title(f'{account.code} - {account.name}')
 
                 # Display array header for partners lines
                 self.write_array_header()
@@ -177,7 +207,7 @@ class AgedPartnerBalanceXslx(models.AbstractModel):
             # For each account
             for account in report.account_ids:
                 # Write account title
-                self.write_array_title(account.code + ' - ' + account.name)
+                self.write_array_title(f'{account.code} - {account.name}')
 
                 # For each partner
                 for partner in account.partner_ids:
@@ -234,11 +264,16 @@ class AgedPartnerBalanceXslx(models.AbstractModel):
         """
         col_pos_footer_label = self._get_col_pos_footer_label(report)
         for col_pos, column in self.columns.items():
-            if col_pos == col_pos_footer_label or column.get(field_name):
-                if col_pos == col_pos_footer_label:
-                    value = label
-                else:
-                    value = getattr(account, column[field_name])
+            if (
+                col_pos == col_pos_footer_label
+                or col_pos != col_pos_footer_label
+                and column.get(field_name)
+            ):
+                value = (
+                    label
+                    if col_pos == col_pos_footer_label
+                    else getattr(account, column[field_name])
+                )
                 cell_type = column.get('type', 'string')
                 if cell_type == 'string' or col_pos == col_pos_footer_label:
                     self.sheet.write_string(self.row_pos, col_pos, value or '',

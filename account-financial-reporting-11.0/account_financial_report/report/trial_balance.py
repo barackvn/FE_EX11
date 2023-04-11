@@ -141,12 +141,14 @@ class TrialBalanceReportAccount(models.TransientModel):
             elif report.limit_hierarchy_level and report.show_hierarchy_level:
                 if report.hide_parent_hierarchy_level:
                     distinct_level = rec.level != report.show_hierarchy_level
-                    if rec.account_group_id and distinct_level:
+                    if (
+                        rec.account_group_id
+                        and distinct_level
+                        or rec.level
+                        and distinct_level
+                    ):
                         rec.hide_line = True
-                    elif rec.level and distinct_level:
-                        rec.hide_line = True
-                elif not report.hide_parent_hierarchy_level and \
-                        rec.level > report.show_hierarchy_level:
+                elif rec.level > report.show_hierarchy_level:
                     rec.hide_line = True
 
 
@@ -215,8 +217,7 @@ class TrialBalanceReportCompute(models.TransientModel):
         result = {}
         rcontext = {}
         context = dict(self.env.context)
-        report = self.browse(context.get('active_id'))
-        if report:
+        if report := self.browse(context.get('active_id')):
             rcontext['o'] = report
             result['html'] = self.env.ref(
                 'account_financial_report.report_trial_balance').render(
@@ -250,11 +251,9 @@ class TrialBalanceReportCompute(models.TransientModel):
         # The data of Trial Balance Report
         # are based on General Ledger Report data.
         model = self.env['report_general_ledger']
-        if self.filter_account_ids:
-            account_ids = self.filter_account_ids
-        else:
-            account_ids = self.env['account.account'].search(
-                [('company_id', '=', self.company_id.id)])
+        account_ids = self.filter_account_ids or self.env[
+            'account.account'
+        ].search([('company_id', '=', self.company_id.id)])
         self.general_ledger_id = model.create(
             self._prepare_report_general_ledger(account_ids)
         )
@@ -266,15 +265,14 @@ class TrialBalanceReportCompute(models.TransientModel):
         self._inject_account_values(account_ids)
         if self.show_partner_details:
             self._inject_partner_values()
-        if not self.filter_account_ids:
-            if self.hierarchy_on != 'none':
-                self._inject_account_group_values()
-                if self.hierarchy_on == 'computed':
-                    self._update_account_group_computed_values()
-                else:
-                    self._update_account_group_child_values()
-                self._update_account_sequence()
-                self._add_account_group_account_values()
+        if not self.filter_account_ids and self.hierarchy_on != 'none':
+            self._inject_account_group_values()
+            if self.hierarchy_on == 'computed':
+                self._update_account_group_computed_values()
+            else:
+                self._update_account_group_child_values()
+            self._update_account_sequence()
+            self._add_account_group_account_values()
         self.refresh()
         if not self.filter_account_ids and self.hierarchy_on != 'none':
             self._compute_group_accounts()
@@ -574,13 +572,12 @@ WHERE newline.account_group_id = report_trial_balance_account.parent_id
         for group in groups:
             if self.hierarchy_on == 'computed':
                 group.compute_account_ids = \
-                    group.account_group_id.compute_account_ids
-            else:
-                if group.child_account_ids:
-                    chacc = group.child_account_ids.replace(
-                        '}', '').replace('{', '').split(',')
-                    if 'NULL' in chacc:
-                        chacc.remove('NULL')
-                    if chacc:
-                        group.compute_account_ids = [
-                            (6, 0, [int(g) for g in chacc])]
+                        group.account_group_id.compute_account_ids
+            elif group.child_account_ids:
+                chacc = group.child_account_ids.replace(
+                    '}', '').replace('{', '').split(',')
+                if 'NULL' in chacc:
+                    chacc.remove('NULL')
+                if chacc:
+                    group.compute_account_ids = [
+                        (6, 0, [int(g) for g in chacc])]

@@ -177,12 +177,15 @@ class TestTrialBalanceReport(common.TransactionCase):
             'show_partner_details': with_partners,
             })
         trial_balance.compute_data_for_report()
-        lines = {}
         report_account_model = self.env['report_trial_balance_account']
-        lines['receivable'] = report_account_model.search([
-            ('report_id', '=', trial_balance.id),
-            ('account_id', '=', self.account100.id),
-        ])
+        lines = {
+            'receivable': report_account_model.search(
+                [
+                    ('report_id', '=', trial_balance.id),
+                    ('account_id', '=', self.account100.id),
+                ]
+            )
+        }
         lines['income'] = report_account_model.search([
             ('report_id', '=', trial_balance.id),
             ('account_id', '=', self.account200.id),
@@ -222,7 +225,7 @@ class TestTrialBalanceReport(common.TransactionCase):
         ])
         for acc in earning_accs:
             if acc.code.startswith('1') or acc.code.startswith('2'):
-                acc.code = '999' + acc.code
+                acc.code = f'999{acc.code}'
         # Generate the general ledger line
         lines = self._get_report_lines()
         self.assertEqual(len(lines['receivable']), 1)

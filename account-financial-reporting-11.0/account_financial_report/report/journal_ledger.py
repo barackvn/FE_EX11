@@ -360,7 +360,7 @@ class ReportJournalLedger(models.TransientModel):
         """
         self.env.cr.execute(sql_distinct_tax_id, (self.id,))
         rows = self.env.cr.fetchall()
-        tax_ids = set([row[0] for row in rows])
+        tax_ids = {row[0] for row in rows}
 
         sql = """
             INSERT INTO report_journal_ledger_report_tax_line (
@@ -541,8 +541,7 @@ class ReportJournalLedger(models.TransientModel):
                 rjqj.id = %s
         """
 
-        for report_journal_ledger_id in tax_ids_by_journal_id:
-            tax_ids = tax_ids_by_journal_id[report_journal_ledger_id]
+        for report_journal_ledger_id, tax_ids in tax_ids_by_journal_id.items():
             for tax_id in tax_ids:
                 params = (
                     self.env.uid,
@@ -600,8 +599,7 @@ class ReportJournalLedger(models.TransientModel):
         result = {}
         rcontext = {}
         context = dict(self.env.context)
-        report = self.browse(context.get('active_id'))
-        if report:
+        if report := self.browse(context.get('active_id')):
             rcontext['o'] = report
             result['html'] = self.env.ref(
                 'account_financial_report.report_journal_ledger').render(

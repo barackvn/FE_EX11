@@ -95,7 +95,7 @@ class TestJournalReport(TransactionCase):
 
         self.company = self.env.ref('base.main_company')
 
-        today = datetime.today()
+        today = datetime.now()
         last_year = today - relativedelta(years=1)
 
         self.previous_fy_date_start = Date.to_string(
@@ -196,14 +196,12 @@ class TestJournalReport(TransactionCase):
             self, report, expected_debit, expected_credit):
         self.assertEqual(
             expected_debit,
-            sum([journal.debit for journal in
-                 report.report_journal_ledger_ids])
+            sum(journal.debit for journal in report.report_journal_ledger_ids),
         )
 
         self.assertEqual(
             expected_credit,
-            sum([journal.credit for journal in
-                 report.report_journal_ledger_ids])
+            sum(journal.credit for journal in report.report_journal_ledger_ids),
         )
 
     def check_report_journal_debit_credit_taxes(
@@ -213,37 +211,36 @@ class TestJournalReport(TransactionCase):
 
         self.assertEqual(
             expected_base_debit,
-            sum([
+            sum(
                 journal.base_debit
                 for journal in report.report_journal_ledger_tax_line_ids
-            ])
+            ),
         )
         self.assertEqual(
             expected_base_credit,
-            sum([
+            sum(
                 journal.base_credit
                 for journal in report.report_journal_ledger_tax_line_ids
-            ])
+            ),
         )
         self.assertEqual(
             expected_tax_debit,
-            sum([
+            sum(
                 journal.tax_debit
                 for journal in report.report_journal_ledger_tax_line_ids
-            ])
+            ),
         )
         self.assertEqual(
             expected_tax_credit,
-            sum([
+            sum(
                 journal.tax_credit
                 for journal in report.report_journal_ledger_tax_line_ids
-            ])
+            ),
         )
 
     def test_01_test_total(self):
         today_date = Date.today()
-        last_year_date = Date.to_string(
-            datetime.today() - relativedelta(years=1))
+        last_year_date = Date.to_string(datetime.now() - relativedelta(years=1))
 
         move1 = self._add_move(
             today_date, self.journal_sale,

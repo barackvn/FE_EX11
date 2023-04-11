@@ -81,7 +81,7 @@ class DateRange(models.Model):
                     " or equal to "
                     "start date %(parent_start)s of %(parent_name)s"
                 ) % text_dict
-            elif (not date_end_valid) and date_start_valid:
+            elif date_start_valid:
                 text = _(
                     "End date %(end)s of %(name)s must be smaller than"
                     " or equal to "
@@ -128,8 +128,7 @@ class DateRange(models.Model):
                                       this.id,
                                       this.company_id.id or None,
                                       this.type_id.id))
-            res = self.env.cr.fetchall()
-            if res:
+            if res := self.env.cr.fetchall():
                 dt = self.browse(res[0][0])
                 raise ValidationError(
                     _("%s overlaps %s") % (this.name, dt.name))
@@ -150,18 +149,19 @@ class DateRange(models.Model):
         if self.parent_type_id:
             domain.append(('type_id', '=', self.parent_type_id.id))
         if self.date_start:
-            domain.append('|')
-            domain.append(('date_start', '<=', self.date_start))
-            domain.append(('date_start', '=', False))
+            domain.extend(
+                (
+                    '|',
+                    ('date_start', '<=', self.date_start),
+                    ('date_start', '=', False),
+                )
+            )
         if self.date_end:
-            domain.append('|')
-            domain.append(('date_end', '>=', self.date_end))
-            domain.append(('date_end', '=', False))
-        if domain:
-            # If user did not select a parent already, autoselect the last
-            # (ordered by date_start) or only parent that applies.
-            if self.type_id and self.date_start and not self.parent_id:
-                possible_parent = self.search(
-                    domain, limit=1, order='date_start desc')
-                self.parent_id = possible_parent  # can be empty!
+            domain.extend(
+                ('|', ('date_end', '>=', self.date_end), ('date_end', '=', False))
+            )
+        if domain and self.type_id and self.date_start and not self.parent_id:
+            possible_parent = self.search(
+                domain, limit=1, order='date_start desc')
+            self.parent_id = possible_parent  # can be empty!
         return {'domain': {'parent_id': domain}}

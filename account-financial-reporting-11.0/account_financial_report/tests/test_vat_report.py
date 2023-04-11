@@ -166,12 +166,15 @@ class TestVATReport(common.TransactionCase):
             'tax_detail': True,
             })
         vat_report.compute_data_for_report()
-        lines = {}
         vat_taxtag_model = self.env['report_vat_report_taxtag']
-        lines['tag_01'] = vat_taxtag_model.search([
-            ('report_id', '=', vat_report.id),
-            ('taxtag_id', '=', self.tax_tag_01.id),
-        ])
+        lines = {
+            'tag_01': vat_taxtag_model.search(
+                [
+                    ('report_id', '=', vat_report.id),
+                    ('taxtag_id', '=', self.tax_tag_01.id),
+                ]
+            )
+        }
         lines['tag_02'] = vat_taxtag_model.search([
             ('report_id', '=', vat_report.id),
             ('taxtag_id', '=', self.tax_tag_02.id),

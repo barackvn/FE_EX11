@@ -29,16 +29,17 @@ class TestCustomerActivityStatement(TransactionCase):
 
     def _create_user(self, login, groups, company):
         group_ids = [group.id for group in groups]
-        user = self.res_users_model.create({
-            'name': login,
-            'login': login,
-            'password': 'demo',
-            'email': 'example@yourcompany.com',
-            'company_id': company.id,
-            'company_ids': [(4, company.id)],
-            'groups_id': [(6, 0, group_ids)]
-        })
-        return user
+        return self.res_users_model.create(
+            {
+                'name': login,
+                'login': login,
+                'password': 'demo',
+                'email': 'example@yourcompany.com',
+                'company_id': company.id,
+                'company_ids': [(4, company.id)],
+                'groups_id': [(6, 0, group_ids)],
+            }
+        )
 
     def test_customer_activity_statement(self):
 

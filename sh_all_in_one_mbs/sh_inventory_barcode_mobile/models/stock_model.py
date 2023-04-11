@@ -32,144 +32,154 @@ class stock_move(models.Model):
         
         if self.sh_stock_move_barcode_mobile in ['',"",False,None]:
             return
-        
+
         CODE_SOUND_SUCCESS = ""
         CODE_SOUND_FAIL = ""
-        
+
         if self.env.user.company_id.sudo().sh_stock_bm_is_sound_on_success:
             CODE_SOUND_SUCCESS = "SH_BARCODE_MOBILE_SUCCESS_"
-         
+
         if self.env.user.company_id.sudo().sh_stock_bm_is_sound_on_fail:
             CODE_SOUND_FAIL = "SH_BARCODE_MOBILE_FAIL_"    
-                    
-        
+
+
         if self.picking_id.state not in ['confirmed','assigned']:
             selections = self.picking_id.fields_get()['state']['selection']
             value = next((v[1] for v in selections if v[0] == self.picking_id.state), self.picking_id.state)
             if self.env.user.company_id.sudo().sh_stock_bm_is_notify_on_fail:
-                message = _(CODE_SOUND_FAIL + 'You can not scan item in %s state.')% (value)
- 
-                # self.env.user.notify_warning(message, title=_('Failed'), sticky=False)                
-                
+                message = _(f'{CODE_SOUND_FAIL}You can not scan item in %s state.') % value
+             
+                        # self.env.user.notify_warning(message, title=_('Failed'), sticky=False)                
+
             return
-                   
+
         elif self.move_line_ids:
             for line in self.move_line_ids:
                 if self.env.user.company_id.sudo().sh_stock_barcode_mobile_type == 'barcode':
                     if self.product_id.barcode == self.sh_stock_move_barcode_mobile:
                         line.qty_done += 1
-                        
-                        if self.env.user.company_id.sudo().sh_stock_bm_is_notify_on_success:
-                            message = _(CODE_SOUND_SUCCESS + 'Product: %s Qty: %s') % (self.product_id.name,line.qty_done)
 
-                            # self.env.user.notify_info(message, title=_('Succeed'), sticky=False)   
-                                                   
-                        if self.quantity_done == self.product_uom_qty + 1:                      
-#                             warning_mess = {
-#                                     'title': _('Alert!'),
-#                                     'message' : 'Becareful! Quantity exceed than initial demand!'
-#                                 }
-#                             return {'warning': warning_mess} 
-                            if self.env.user.company_id.sudo().sh_stock_bm_is_notify_on_fail:
-                                message = _(CODE_SOUND_FAIL + 'Becareful! Quantity exceed than initial demand!')
-                               
-                                # self.env.user.notify_warning(message, title=_('Alert!'), sticky=False)                                                     
-                                                         
+                        if self.env.user.company_id.sudo().sh_stock_bm_is_notify_on_success:
+                            message = _(
+                                f'{CODE_SOUND_SUCCESS}Product: %s Qty: %s'
+                            ) % (self.product_id.name, line.qty_done)
+
+                                                # self.env.user.notify_info(message, title=_('Succeed'), sticky=False)   
+
+                        if (
+                            self.quantity_done == self.product_uom_qty + 1
+                            and self.env.user.company_id.sudo().sh_stock_bm_is_notify_on_fail
+                        ):
+                            message = _(
+                                f'{CODE_SOUND_FAIL}Becareful! Quantity exceed than initial demand!'
+                            )
+
                         break
                     else:
                         if self.env.user.company_id.sudo().sh_stock_bm_is_notify_on_fail:
-                            message = _(CODE_SOUND_FAIL + 'Scanned Internal Reference/Barcode not exist in any product!')
-                            
-                            # self.env.user.notify_warning(message, title=_('Failed'), sticky=False)                            
-                            
+                            message = _(
+                                f'{CODE_SOUND_FAIL}Scanned Internal Reference/Barcode not exist in any product!'
+                            )
+                                                
+                                                # self.env.user.notify_warning(message, title=_('Failed'), sticky=False)                            
+
                         return                              
-                     
+
                 elif self.env.user.company_id.sudo().sh_stock_barcode_mobile_type == 'int_ref':
                     if self.product_id.default_code == self.sh_stock_move_barcode_mobile:
                         line.qty_done += 1
-                        
-                        if self.env.user.company_id.sudo().sh_stock_bm_is_notify_on_success:
-                            message = _(CODE_SOUND_SUCCESS + 'Product: %s Qty: %s') % (self.product_id.name,line.qty_done)
-                            # self.env.user.notify_info(message, title=_('Succeed'), sticky=False) 
-                                                    
-                        if self.quantity_done == self.product_uom_qty + 1:                      
-#                             warning_mess = {
-#                                     'title': _('Alert!'),
-#                                     'message' : 'Becareful! Quantity exceed than initial demand!'
-#                                 }
-#                             return {'warning': warning_mess}    
 
-                            if self.env.user.company_id.sudo().sh_stock_bm_is_notify_on_fail:
-                                message = _(CODE_SOUND_FAIL + 'Becareful! Quantity exceed than initial demand!')
-                                
-                                # self.env.user.notify_warning(message, title=_('Alert!'), sticky=False)                                                                    
+                        if self.env.user.company_id.sudo().sh_stock_bm_is_notify_on_success:
+                            message = _(
+                                f'{CODE_SOUND_SUCCESS}Product: %s Qty: %s'
+                            ) % (self.product_id.name, line.qty_done)
+                                                # self.env.user.notify_info(message, title=_('Succeed'), sticky=False) 
+
+                        if (
+                            self.quantity_done == self.product_uom_qty + 1
+                            and self.env.user.company_id.sudo().sh_stock_bm_is_notify_on_fail
+                        ):
+                            message = _(
+                                f'{CODE_SOUND_FAIL}Becareful! Quantity exceed than initial demand!'
+                            )
+
                         break
                     else:
                         if self.env.user.company_id.sudo().sh_stock_bm_is_notify_on_fail:
-                            message = _(CODE_SOUND_FAIL + 'Scanned Internal Reference/Barcode not exist in any product!')
-                           
-                            # self.env.user.notify_warning(message, title=_('Failed'), sticky=False)                            
-                            
+                            message = _(
+                                f'{CODE_SOUND_FAIL}Scanned Internal Reference/Barcode not exist in any product!'
+                            )
+                                               
+                                                # self.env.user.notify_warning(message, title=_('Failed'), sticky=False)                            
+
                         return                             
-                    
+
                 elif self.env.user.company_id.sudo().sh_stock_barcode_mobile_type == 'sh_qr_code':
                     if self.product_id.sh_qr_code == self.sh_stock_move_barcode_mobile:
                         line.qty_done += 1
                         if self.env.user.company_id.sudo().sh_stock_bm_is_notify_on_success:
-                            message = _(CODE_SOUND_SUCCESS + 'Product: %s Qty: %s') % (self.product_id.name,line.qty_done)
-                            # self.env.user.notify_info(message, title=_('Succeed'), sticky=False) 
-                                                    
-                        if self.quantity_done == self.product_uom_qty + 1:                        
-                            if self.env.user.company_id.sudo().sh_stock_bm_is_notify_on_fail:
-                                message = _(CODE_SOUND_FAIL + 'Becareful! Quantity exceed than initial demand!')
-                                
-                                # self.env.user.notify_warning(message, title=_('Alert!'), sticky=False)                       
-                                                      
+                            message = _(
+                                f'{CODE_SOUND_SUCCESS}Product: %s Qty: %s'
+                            ) % (self.product_id.name, line.qty_done)
+                                                # self.env.user.notify_info(message, title=_('Succeed'), sticky=False) 
+
+                        if (
+                            self.quantity_done == self.product_uom_qty + 1
+                            and self.env.user.company_id.sudo().sh_stock_bm_is_notify_on_fail
+                        ):
+                            message = _(
+                                f'{CODE_SOUND_FAIL}Becareful! Quantity exceed than initial demand!'
+                            )
+
                         break
                     else:
                         if self.env.user.company_id.sudo().sh_stock_bm_is_notify_on_fail:
-                            message = _(CODE_SOUND_FAIL + 'Scanned Internal Reference/Barcode not exist in any product!')
-                            
-                            # self.env.user.notify_warning(message, title=_('Alert!'), sticky=False)
-                            
+                            message = _(
+                                f'{CODE_SOUND_FAIL}Scanned Internal Reference/Barcode not exist in any product!'
+                            )
+                                                
+                                                # self.env.user.notify_warning(message, title=_('Alert!'), sticky=False)
+
                         return       
-                                                             
-                     
+
+
                 elif self.env.user.company_id.sudo().sh_stock_barcode_mobile_type == 'all':
                     lot = 0
-                    lote = self.env["stock.production.lot"].search([('name','=',self.sh_stock_move_barcode_mobile)])
-                    if lote:
-                        lot = lote.product_id.id     
+                    if lote := self.env["stock.production.lot"].search(
+                        [('name', '=', self.sh_stock_move_barcode_mobile)]
+                    ):
+                        lot = lote.product_id.id
                     if self.product_id.barcode == self.sh_stock_move_barcode_mobile or self.product_id.default_code == self.sh_stock_move_barcode_mobile or self.product_id.sh_qr_code == self.sh_stock_move_barcode_mobile or self.product_id.id == lot:
                         line.qty_done += 1
 
                         if self.env.user.company_id.sudo().sh_stock_bm_is_notify_on_success:
-                            message = _(CODE_SOUND_SUCCESS + 'Product: %s Qty: %s') % (self.product_id.name,line.qty_done)
-                            # self.env.user.notify_info(message, title=_('Succeed'), sticky=False) 
-                                                    
-                        if self.quantity_done == self.product_uom_qty + 1:                    
-#                             warning_mess = {
-#                                     'title': _('Alert!'),
-#                                     'message' : 'Becareful! Quantity exceed than initial demand!'
-#                                 }
-#                             return {'warning': warning_mess}   
-                            if self.env.user.company_id.sudo().sh_stock_bm_is_notify_on_fail:
-                                message = _(CODE_SOUND_FAIL + 'Becareful! Quantity exceed than initial demand!')
-                                # self.env.user.notify_warning(message, title=_('Alert!'), sticky=False)     
-                                                               
+                            message = _(
+                                f'{CODE_SOUND_SUCCESS}Product: %s Qty: %s'
+                            ) % (self.product_id.name, line.qty_done)
+                                                # self.env.user.notify_info(message, title=_('Succeed'), sticky=False) 
+
+                        if (
+                            self.quantity_done == self.product_uom_qty + 1
+                            and self.env.user.company_id.sudo().sh_stock_bm_is_notify_on_fail
+                        ):
+                            message = _(
+                                f'{CODE_SOUND_FAIL}Becareful! Quantity exceed than initial demand!'
+                            )
                         break
                     else:
                         if self.env.user.company_id.sudo().sh_stock_bm_is_notify_on_fail:
-                            message = _(CODE_SOUND_FAIL + 'Scanned Internal Reference/Barcode not exist in any product!')
-                            # self.env.user.notify_warning(message, title=_('Alert!'), sticky=False)
-                            
+                            message = _(
+                                f'{CODE_SOUND_FAIL}Scanned Internal Reference/Barcode not exist in any product!'
+                            )
+                                                # self.env.user.notify_warning(message, title=_('Alert!'), sticky=False)
+
                         return                                
-                 
+
         else:
             if self.env.user.company_id.sudo().sh_stock_bm_is_notify_on_fail:
-                message = _(CODE_SOUND_FAIL + 'Pls add all product items in line than rescan.')
-                # self.env.user.notify_warning(message, title=_('Alert!'), sticky=False)
-                
+                message = _(f'{CODE_SOUND_FAIL}Pls add all product items in line than rescan.')
+                        # self.env.user.notify_warning(message, title=_('Alert!'), sticky=False)
+
             return   
          
          
