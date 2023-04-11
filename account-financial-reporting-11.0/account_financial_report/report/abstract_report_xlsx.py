@@ -245,13 +245,12 @@ class AbstractReportXslx(models.AbstractModel):
             elif column.get('field_currency_balance'):
                 value = getattr(my_object, column['field_currency_balance'])
                 cell_type = column.get('type', 'string')
-                if cell_type == 'many2one':
-                    if my_object.currency_id:
-                        self.sheet.write_string(
-                            self.row_pos, col_pos,
-                            value.name or '',
-                            self.format_right
-                        )
+                if cell_type == 'many2one' and my_object.currency_id:
+                    self.sheet.write_string(
+                        self.row_pos, col_pos,
+                        value.name or '',
+                        self.format_right
+                    )
         self.row_pos += 1
 
     def write_ending_balance(self, my_object, name, label):
@@ -260,7 +259,7 @@ class AbstractReportXslx(models.AbstractModel):
 
         Columns are defined with `_get_report_columns` method.
         """
-        for i in range(0, len(self.columns)):
+        for i in range(len(self.columns)):
             self.sheet.write(self.row_pos, i, '', self.format_header_right)
         row_count_name = self._get_col_count_final_balance_name()
         col_pos_label = self._get_col_pos_final_balance_label()
@@ -293,34 +292,32 @@ class AbstractReportXslx(models.AbstractModel):
             elif column.get('field_currency_balance'):
                 value = getattr(my_object, column['field_currency_balance'])
                 cell_type = column.get('type', 'string')
-                if cell_type == 'many2one':
-                    if my_object.currency_id:
-                        self.sheet.write_string(
-                            self.row_pos, col_pos,
-                            value.name or '',
-                            self.format_header_right
-                        )
+                if cell_type == 'many2one' and my_object.currency_id:
+                    self.sheet.write_string(
+                        self.row_pos, col_pos,
+                        value.name or '',
+                        self.format_header_right
+                    )
         self.row_pos += 1
 
     def _get_currency_amt_format(self, line_object):
         """ Return amount format specific for each currency. """
         if hasattr(line_object, 'account_group_id') and \
-                line_object.account_group_id:
+                    line_object.account_group_id:
             format_amt = getattr(self, 'format_amount_bold')
             field_prefix = 'format_amount_bold'
         else:
             format_amt = getattr(self, 'format_amount')
             field_prefix = 'format_amount'
         if line_object.currency_id:
-            field_name = \
-                '%s_%s' % (field_prefix, line_object.currency_id.name)
+            field_name = f'{field_prefix}_{line_object.currency_id.name}'
             if hasattr(self, field_name):
                 format_amt = getattr(self, field_name)
             else:
                 format_amt = self.workbook.add_format()
                 setattr(self, 'field_name', format_amt)
                 format_amount = \
-                    '#,##0.' + ('0' * line_object.currency_id.decimal_places)
+                        '#,##0.' + ('0' * line_object.currency_id.decimal_places)
                 format_amt.set_num_format(format_amount)
         return format_amt
 
@@ -328,8 +325,7 @@ class AbstractReportXslx(models.AbstractModel):
         """ Return amount header format for each currency. """
         format_amt = getattr(self, 'format_header_amount')
         if line_object.currency_id:
-            field_name = \
-                'format_header_amount_%s' % line_object.currency_id.name
+            field_name = f'format_header_amount_{line_object.currency_id.name}'
             if hasattr(self, field_name):
                 format_amt = getattr(self, field_name)
             else:
@@ -339,7 +335,7 @@ class AbstractReportXslx(models.AbstractModel):
                      'bg_color': '#FFFFCC'})
                 setattr(self, 'field_name', format_amt)
                 format_amount = \
-                    '#,##0.' + ('0' * line_object.currency_id.decimal_places)
+                        '#,##0.' + ('0' * line_object.currency_id.decimal_places)
                 format_amt.set_num_format(format_amount)
         return format_amt
 
@@ -351,8 +347,7 @@ class AbstractReportXslx(models.AbstractModel):
 
     def _get_report_complete_name(self, report, prefix):
         if report.company_id:
-            suffix = ' - %s - %s' % (
-                report.company_id.name, report.company_id.currency_id.name)
+            suffix = f' - {report.company_id.name} - {report.company_id.currency_id.name}'
             return prefix + suffix
         return prefix
 

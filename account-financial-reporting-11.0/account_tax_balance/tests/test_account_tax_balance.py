@@ -21,13 +21,16 @@ class TestAccountTaxBalance(HttpCase):
         self.range_generator = self.env['date.range.generator']
         self.current_year = datetime.now().year
         self.current_month = datetime.now().month
-        range_generator = self.range_generator.create({
-            'date_start': '%s-01-01' % self.current_year,
-            'name_prefix': '%s-' % self.current_year,
-            'type_id': self.range_type.id,
-            'duration_count': 1,
-            'unit_of_time': MONTHLY,
-            'count': 12})
+        range_generator = self.range_generator.create(
+            {
+                'date_start': f'{self.current_year}-01-01',
+                'name_prefix': f'{self.current_year}-',
+                'type_id': self.range_type.id,
+                'duration_count': 1,
+                'unit_of_time': MONTHLY,
+                'count': 12,
+            }
+        )
         range_generator.action_apply()
         self.range = self.env['date.range']
 
@@ -77,10 +80,9 @@ class TestAccountTaxBalance(HttpCase):
         self.assertEqual(tax.balance_refund, 0.)
 
         # testing wizard
-        current_range = self.range.search([
-            ('date_start', '=', '%s-%s-01' % (
-                self.current_year, self.current_month))
-        ])
+        current_range = self.range.search(
+            [('date_start', '=', f'{self.current_year}-{self.current_month}-01')]
+        )
         wizard = self.env['wizard.open.tax.balances'].new({})
         self.assertFalse(wizard.from_date)
         self.assertFalse(wizard.to_date)
@@ -106,12 +108,12 @@ class TestAccountTaxBalance(HttpCase):
         tax_action = tax.view_tax_lines()
         base_action = tax.view_base_lines()
         tax_action_move_lines = self.env['account.move.line'].\
-            search(tax_action['domain'])
+                search(tax_action['domain'])
         self.assertTrue(invoice.move_id.line_ids & tax_action_move_lines)
         self.assertEqual(
             tax_action['xml_id'], 'account.action_account_moves_all_tree')
         base_action_move_lines = self.env['account.move.line'].\
-            search(base_action['domain'])
+                search(base_action['domain'])
         self.assertTrue(invoice.move_id.line_ids & base_action_move_lines)
         self.assertEqual(
             base_action['xml_id'], 'account.action_account_moves_all_tree')

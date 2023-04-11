@@ -55,8 +55,7 @@ class TrialBalanceXslx(models.AbstractModel):
                         'type': 'amount_currency',
                         'width': 14},
                 }
-                res = {**res, **foreign_currency}
-            return res
+                res |= foreign_currency
         else:
             res = {
                 0: {'header': _('Partner'), 'field': 'name', 'width': 70},
@@ -96,23 +95,36 @@ class TrialBalanceXslx(models.AbstractModel):
                         'type': 'amount_currency',
                         'width': 14},
                 }
-                res = {**res, **foreign_currency}
-            return res
+                res |= foreign_currency
+
+        return res
 
     def _get_report_filters(self, report):
         return [
-            [_('Date range filter'),
-             _('From: %s To: %s') % (report.date_from, report.date_to)],
-            [_('Target moves filter'),
-             _('All posted entries') if report.only_posted_moves else _(
-                 'All entries')],
-            [_('Account at 0 filter'),
-             _('Hide') if report.hide_account_at_0 else _('Show')],
-            [_('Show foreign currency'),
-             _('Yes') if report.foreign_currency else _('No')],
-            [_('Limit hierarchy levels'),
-             _('Level %s' % report.show_hierarchy_level) if
-             report.limit_hierarchy_level else _('No limit')],
+            [
+                _('Date range filter'),
+                _('From: %s To: %s') % (report.date_from, report.date_to),
+            ],
+            [
+                _('Target moves filter'),
+                _('All posted entries')
+                if report.only_posted_moves
+                else _('All entries'),
+            ],
+            [
+                _('Account at 0 filter'),
+                _('Hide') if report.hide_account_at_0 else _('Show'),
+            ],
+            [
+                _('Show foreign currency'),
+                _('Yes') if report.foreign_currency else _('No'),
+            ],
+            [
+                _('Limit hierarchy levels'),
+                _(f'Level {report.show_hierarchy_level}')
+                if report.limit_hierarchy_level
+                else _('No limit'),
+            ],
         ]
 
     def _get_col_count_filter_name(self):
@@ -135,7 +147,7 @@ class TrialBalanceXslx(models.AbstractModel):
 
             else:
                 # Write account title
-                self.write_array_title(account.code + ' - ' + account.name)
+                self.write_array_title(f'{account.code} - {account.name}')
 
                 # Display array header for partner lines
                 self.write_array_header()
@@ -146,8 +158,7 @@ class TrialBalanceXslx(models.AbstractModel):
                     self.write_line(partner, 'partner')
 
                 # Display account footer line
-                self.write_account_footer(account,
-                                          account.code + ' - ' + account.name)
+                self.write_account_footer(account, f'{account.code} - {account.name}')
 
                 # Line break
                 self.row_pos += 2

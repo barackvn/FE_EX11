@@ -8,8 +8,9 @@ class AbstractReport(models.AbstractModel):
     _name = 'account_financial_report_abstract'
 
     def _transient_clean_rows_older_than(self, seconds):
-        assert self._transient, \
-            "Model %s is not transient, it cannot be vacuumed!" % self._name
+        assert (
+            self._transient
+        ), f"Model {self._name} is not transient, it cannot be vacuumed!"
         # Never delete rows used in last 5 minutes
         seconds = max(seconds, 300)
         query = """
@@ -18,4 +19,4 @@ WHERE COALESCE(
     write_date, create_date, (now() at time zone 'UTC'))::timestamp
     < ((now() at time zone 'UTC') - interval %s)
 """
-        self.env.cr.execute(query, ("%s seconds" % seconds,))
+        self.env.cr.execute(query, (f"{seconds} seconds", ))

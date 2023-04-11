@@ -67,7 +67,7 @@ class GeneralLedgerXslx(models.AbstractModel):
                      'type': 'amount_currency',
                      'width': 14},
             }
-            res = {**res, **foreign_currency}
+            res |= foreign_currency
         return res
 
     def _get_report_filters(self, report):
@@ -118,7 +118,7 @@ class GeneralLedgerXslx(models.AbstractModel):
         # For each account
         for account in report.account_ids:
             # Write account title
-            self.write_array_title(account.code + ' - ' + account.name)
+            self.write_array_title(f'{account.code} - {account.name}')
 
             if not account.partner_ids:
                 # Display array header for move lines
@@ -177,7 +177,7 @@ class GeneralLedgerXslx(models.AbstractModel):
             name = my_object.name
             label = _('Partner ending balance')
         elif 'account' in my_object._name:
-            name = my_object.code + ' - ' + my_object.name
+            name = f'{my_object.code} - {my_object.name}'
             label = _('Ending balance')
         super(GeneralLedgerXslx, self).write_ending_balance(
             my_object, name, label

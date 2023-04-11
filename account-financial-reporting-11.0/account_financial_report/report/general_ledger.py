@@ -230,8 +230,7 @@ class GeneralLedgerReportCompute(models.TransientModel):
         result = {}
         rcontext = {}
         context = dict(self.env.context)
-        report = self.browse(context.get('active_id'))
-        if report:
+        if report := self.browse(context.get('active_id')):
             rcontext['o'] = report
             result['html'] = self.env.ref(
                 'account_financial_report.report_general_ledger').render(
@@ -322,15 +321,15 @@ class GeneralLedgerReportCompute(models.TransientModel):
                 AND ml.date < %s
             """
 
-        if not include_initial_balance:
-            sub_subquery_sum_amounts += """
-                AND at.include_initial_balance != TRUE AND ml.date >= %s
+        sub_subquery_sum_amounts += (
             """
-        else:
-            sub_subquery_sum_amounts += """
                 AND at.include_initial_balance = TRUE
             """
-
+            if include_initial_balance
+            else """
+                AND at.include_initial_balance != TRUE AND ml.date >= %s
+            """
+        )
         if self.only_posted_moves:
             sub_subquery_sum_amounts += """
         INNER JOIN
@@ -654,22 +653,24 @@ AND
             sub_subquery_sum_amounts += """
                     AND ml.date < %s
             """
-        if not only_empty_partner:
-            sub_subquery_sum_amounts += """
-                    AND ap.partner_id = ml.partner_id
+        sub_subquery_sum_amounts += (
             """
-        else:
-            sub_subquery_sum_amounts += """
                     AND ap.partner_id IS NULL AND ml.partner_id IS NULL
             """
-        if not include_initial_balance:
-            sub_subquery_sum_amounts += """
-                    AND ap.include_initial_balance != TRUE AND ml.date >= %s
+            if only_empty_partner
+            else """
+                    AND ap.partner_id = ml.partner_id
             """
-        else:
-            sub_subquery_sum_amounts += """
+        )
+        sub_subquery_sum_amounts += (
+            """
                     AND ap.include_initial_balance = TRUE
             """
+            if include_initial_balance
+            else """
+                    AND ap.include_initial_balance != TRUE AND ml.date >= %s
+            """
+        )
         if self.only_posted_moves:
             sub_subquery_sum_amounts += """
             INNER JOIN
@@ -792,16 +793,17 @@ WITH
             AND
                 ra.is_partner_account = TRUE
         """
-        if not only_empty_partner:
-            query_inject_partner += """
-            AND
-                p.id IS NOT NULL
+        query_inject_partner += (
             """
-        else:
-            query_inject_partner += """
             AND
                 p.id IS NULL
             """
+            if only_empty_partner
+            else """
+            AND
+                p.id IS NOT NULL
+            """
+        )
         query_inject_partner += """
                         """
         if self.centralize:
@@ -897,14 +899,15 @@ LEFT JOIN
         ON
             (
         """
-        if not only_empty_partner:
-            query_inject_partner += """
-                ap.partner_id = i.partner_id
+        query_inject_partner += (
             """
-        else:
-            query_inject_partner += """
                 ap.partner_id IS NULL AND i.partner_id IS NULL
             """
+            if only_empty_partner
+            else """
+                ap.partner_id = i.partner_id
+            """
+        )
         query_inject_partner += """
             )
             AND ap.account_id = i.account_id
@@ -913,14 +916,15 @@ LEFT JOIN
         ON
             (
         """
-        if not only_empty_partner:
-            query_inject_partner += """
-                ap.partner_id = f.partner_id
+        query_inject_partner += (
             """
-        else:
-            query_inject_partner += """
                 ap.partner_id IS NULL AND f.partner_id IS NULL
             """
+            if only_empty_partner
+            else """
+                ap.partner_id = f.partner_id
+            """
+        )
         query_inject_partner += """
             )
             AND ap.account_id = f.account_id
@@ -1121,8 +1125,14 @@ SELECT
             ''
     END as taxes_description,
         """
-        if not only_empty_partner_line:
-            query_inject_move_line += """
+        query_inject_move_line += (
+            """
+    '"""
+            + _('No partner allocated')
+            + """' AS partner,
+            """
+            if only_empty_partner_line
+            else """
     CASE
         WHEN
             NULLIF(p.name, '') IS NOT NULL
@@ -1131,10 +1141,7 @@ SELECT
         ELSE p.name
     END AS partner,
             """
-        elif only_empty_partner_line:
-            query_inject_move_line += """
-    '""" + _('No partner allocated') + """' AS partner,
-            """
+        )
         query_inject_move_line += """
     CONCAT_WS(' - ', NULLIF(ml.ref, ''), NULLIF(ml.name, '')) AS label,
     aa.name AS cost_center,
@@ -1158,7 +1165,7 @@ SELECT
               ORDER BY a.code, p.name, ml.date, ml.id)
     ) AS cumul_balance,
             """
-        elif is_partner_line and only_empty_partner_line:
+        elif is_partner_line:
             query_inject_move_line += """
     rp.initial_balance + (
         SUM(ml.balance)
@@ -1272,22 +1279,20 @@ AND
 AND
     j.id IN %s
             """
-        if is_account_line:
+        if (
+            is_account_line
+            or (not is_partner_line or only_empty_partner_line)
+            and is_partner_line
+        ):
             query_inject_move_line += """
 ORDER BY
     a.code, ml.date, ml.id
             """
-        elif is_partner_line and not only_empty_partner_line:
+        elif is_partner_line:
             query_inject_move_line += """
 ORDER BY
     a.code, p.name, ml.date, ml.id
             """
-        elif is_partner_line and only_empty_partner_line:
-            query_inject_move_line += """
-ORDER BY
-    a.code, ml.date, ml.id
-            """
-
         query_inject_move_line_params = ()
         if self.filter_analytic_tag_ids:
             query_inject_move_line_params += (
@@ -1326,8 +1331,9 @@ ORDER BY
 
         Only centralized accounts are computed.
         """
-        if self.filter_analytic_tag_ids:
-            query_inject_move_line_centralized = """
+        query_inject_move_line_centralized = (
+            (
+                """
         WITH
             move_lines_on_tags AS
                 (
@@ -1351,11 +1357,12 @@ ORDER BY
                         aat.id IN %s
                 ),
                     """
-        else:
-            query_inject_move_line_centralized = """
+                if self.filter_analytic_tag_ids
+                else """
 WITH
             """
-        query_inject_move_line_centralized += """
+            )
+            + """
     move_lines AS
         (
             SELECT
@@ -1378,6 +1385,7 @@ WITH
             INNER JOIN
                 account_account a ON ml.account_id = a.id
         """
+        )
         if self.filter_cost_center_ids:
             query_inject_move_line_centralized += """
             INNER JOIN

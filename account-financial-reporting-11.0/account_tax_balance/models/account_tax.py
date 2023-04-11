@@ -109,13 +109,12 @@ class AccountTax(models.Model):
         return []
 
     def get_target_state_list(self, target_move="posted"):
-        if target_move == 'posted':
-            state = ['posted']
-        elif target_move == 'all':
-            state = ['posted', 'draft']
+        if target_move == 'all':
+            return ['posted', 'draft']
+        elif target_move == 'posted':
+            return ['posted']
         else:
-            state = []
-        return state
+            return []
 
     def get_move_line_partial_domain(self, from_date, to_date, company_id):
         return [

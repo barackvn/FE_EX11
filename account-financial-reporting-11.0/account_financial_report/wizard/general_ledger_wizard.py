@@ -134,7 +134,7 @@ class GeneralLedgerReportWizard(models.TransientModel):
             ])
         self.not_only_one_unaffected_earnings_account = count != 1
         if self.company_id and self.date_range_id.company_id and \
-                self.date_range_id.company_id != self.company_id:
+                    self.date_range_id.company_id != self.company_id:
             self.date_range_id = False
         if self.company_id and self.account_journal_ids:
             self.account_journal_ids = self.account_journal_ids.filtered(
@@ -162,21 +162,20 @@ class GeneralLedgerReportWizard(models.TransientModel):
                }
         if not self.company_id:
             return res
-        else:
-            res['domain']['account_ids'] += [
-                ('company_id', '=', self.company_id.id)]
-            res['domain']['account_journal_ids'] += [
-                ('company_id', '=', self.company_id.id)]
-            res['domain']['partner_ids'] += [
-                '&',
-                '|', ('company_id', '=', self.company_id.id),
-                ('company_id', '=', False),
-                ('parent_id', '=', False)]
-            res['domain']['cost_center_ids'] += [
-                ('company_id', '=', self.company_id.id)]
-            res['domain']['date_range_id'] += [
-                '|', ('company_id', '=', self.company_id.id),
-                ('company_id', '=', False)]
+        res['domain']['account_ids'] += [
+            ('company_id', '=', self.company_id.id)]
+        res['domain']['account_journal_ids'] += [
+            ('company_id', '=', self.company_id.id)]
+        res['domain']['partner_ids'] += [
+            '&',
+            '|', ('company_id', '=', self.company_id.id),
+            ('company_id', '=', False),
+            ('parent_id', '=', False)]
+        res['domain']['cost_center_ids'] += [
+            ('company_id', '=', self.company_id.id)]
+        res['domain']['date_range_id'] += [
+            '|', ('company_id', '=', self.company_id.id),
+            ('company_id', '=', False)]
         return res
 
     @api.onchange('date_range_id')
@@ -205,7 +204,7 @@ class GeneralLedgerReportWizard(models.TransientModel):
                 domain += [('internal_type', 'in', ('receivable', 'payable'))]
             elif self.receivable_accounts_only:
                 domain += [('internal_type', '=', 'receivable')]
-            elif self.payable_accounts_only:
+            else:
                 domain += [('internal_type', '=', 'payable')]
             self.account_ids = self.env['account.account'].search(domain)
         else:

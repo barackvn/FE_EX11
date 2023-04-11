@@ -21,10 +21,16 @@ class product_template(models.Model):
     @api.model
     def create(self, vals):
         res = super(product_template, self).create(vals)
-        is_create_qr_code = self.env['ir.config_parameter'].sudo().get_param('sh_product_qrcode_generator.is_sh_product_qrcode_generator_when_create')     
-        if is_create_qr_code:          
-            qr_sequence = self.env['ir.sequence'].next_by_code('seq.sh_product_qrcode_generator')
-            if qr_sequence:    
+        if (
+            is_create_qr_code := self.env['ir.config_parameter']
+            .sudo()
+            .get_param(
+                'sh_product_qrcode_generator.is_sh_product_qrcode_generator_when_create'
+            )
+        ):
+            if qr_sequence := self.env['ir.sequence'].next_by_code(
+                'seq.sh_product_qrcode_generator'
+            ):
                 qr_code = qr_sequence
                 qr = qrcode.QRCode(
                     version=1,
@@ -34,24 +40,25 @@ class product_template(models.Model):
                 )
                 qr.add_data(qr_code)
                 qr.make(fit=True)
-         
+
                 img = qr.make_image()
                 temp = BytesIO()
                 img.save(temp, format="PNG")
                 qr_code_image = base64.b64encode(temp.getvalue())
-                 
+
                 res.sh_qr_code = qr_code
                 res.sh_qr_code_img = qr_code_image
-        
+
         return res   
 
     @api.multi
     def as_generate_qr(self):
-        is_create_qr_code = self.env['ir.config_parameter'].sudo().get_param('sh_product_qrcode_generator.is_sh_product_qrcode_generator_when_create')  
+        is_create_qr_code = self.env['ir.config_parameter'].sudo().get_param('sh_product_qrcode_generator.is_sh_product_qrcode_generator_when_create')
         for res in self:   
-            if is_create_qr_code:          
-                qr_sequence = self.env['ir.sequence'].next_by_code('seq.sh_product_qrcode_generator')
-                if qr_sequence:    
+            if is_create_qr_code:  
+                if qr_sequence := self.env['ir.sequence'].next_by_code(
+                    'seq.sh_product_qrcode_generator'
+                ):
                     qr_code = qr_sequence
                     qr = qrcode.QRCode(
                         version=1,
@@ -61,12 +68,12 @@ class product_template(models.Model):
                     )
                     qr.add_data(qr_code)
                     qr.make(fit=True)
-            
+
                     img = qr.make_image()
                     temp = BytesIO()
                     img.save(temp, format="PNG")
                     qr_code_image = base64.b64encode(temp.getvalue())
-                    
+
                     res.update({'sh_qr_code':qr_code,'sh_qr_code_img':qr_code_image})
     
     
@@ -81,10 +88,16 @@ class product_product(models.Model):
     @api.model
     def create(self, vals):
         res = super(product_product, self).create(vals)
-        is_create_qr_code = self.env['ir.config_parameter'].sudo().get_param('sh_product_qrcode_generator.is_sh_product_qrcode_generator_when_create')     
-        if is_create_qr_code:          
-            qr_sequence = self.env['ir.sequence'].next_by_code('seq.sh_product_qrcode_generator')
-            if qr_sequence:    
+        if (
+            is_create_qr_code := self.env['ir.config_parameter']
+            .sudo()
+            .get_param(
+                'sh_product_qrcode_generator.is_sh_product_qrcode_generator_when_create'
+            )
+        ):
+            if qr_sequence := self.env['ir.sequence'].next_by_code(
+                'seq.sh_product_qrcode_generator'
+            ):
                 qr_code = qr_sequence
                 qr = qrcode.QRCode(
                     version=1,
@@ -94,24 +107,25 @@ class product_product(models.Model):
                 )
                 qr.add_data(qr_code)
                 qr.make(fit=True)
-         
+
                 img = qr.make_image()
                 temp = BytesIO()
                 img.save(temp, format="PNG")
                 qr_code_image = base64.b64encode(temp.getvalue())
-                 
+
                 res.sh_qr_code = qr_code
                 res.sh_qr_code_img = qr_code_image
-        
+
         return res        
         
     @api.multi
     def as_generate_qr(self):
-        is_create_qr_code = self.env['ir.config_parameter'].sudo().get_param('sh_product_qrcode_generator.is_sh_product_qrcode_generator_when_create')  
+        is_create_qr_code = self.env['ir.config_parameter'].sudo().get_param('sh_product_qrcode_generator.is_sh_product_qrcode_generator_when_create')
         for res in self:   
-            if is_create_qr_code:          
-                qr_sequence = self.env['ir.sequence'].next_by_code('seq.sh_product_qrcode_generator')
-                if qr_sequence:    
+            if is_create_qr_code:  
+                if qr_sequence := self.env['ir.sequence'].next_by_code(
+                    'seq.sh_product_qrcode_generator'
+                ):
                     qr_code = qr_sequence
                     qr = qrcode.QRCode(
                         version=1,
@@ -121,10 +135,10 @@ class product_product(models.Model):
                     )
                     qr.add_data(qr_code)
                     qr.make(fit=True)
-            
+
                     img = qr.make_image()
                     temp = BytesIO()
                     img.save(temp, format="PNG")
                     qr_code_image = base64.b64encode(temp.getvalue())
-                    
+
                     res.update({'sh_qr_code':qr_code,'sh_qr_code_img':qr_code_image})

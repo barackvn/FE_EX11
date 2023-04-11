@@ -87,14 +87,13 @@ class OpenItemsReportWizard(models.TransientModel):
                           'partner_ids': []}}
         if not self.company_id:
             return res
-        else:
-            res['domain']['account_ids'] += [
-                ('company_id', '=', self.company_id.id)]
-            res['domain']['partner_ids'] += [
-                '&',
-                '|', ('company_id', '=', self.company_id.id),
-                ('company_id', '=', False),
-                ('parent_id', '=', False)]
+        res['domain']['account_ids'] += [
+            ('company_id', '=', self.company_id.id)]
+        res['domain']['partner_ids'] += [
+            '&',
+            '|', ('company_id', '=', self.company_id.id),
+            ('company_id', '=', False),
+            ('parent_id', '=', False)]
         return res
 
     @api.onchange('receivable_accounts_only', 'payable_accounts_only')
@@ -106,7 +105,7 @@ class OpenItemsReportWizard(models.TransientModel):
                 domain += [('internal_type', 'in', ('receivable', 'payable'))]
             elif self.receivable_accounts_only:
                 domain += [('internal_type', '=', 'receivable')]
-            elif self.payable_accounts_only:
+            else:
                 domain += [('internal_type', '=', 'payable')]
             self.account_ids = self.env['account.account'].search(domain)
         else:

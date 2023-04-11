@@ -51,9 +51,7 @@ class DateRangeType(models.Model):
     def _validate_parent_type_id(self):
         for record in self:
             parent = record
-            while parent:
-                if not parent.parent_type_id:
-                    break
+            while parent and parent.parent_type_id:
                 if parent.parent_type_id == record:
                     raise ValidationError(
                         _("A type can not have itself as parent or child"))

@@ -16,7 +16,7 @@ class MrpProduction(models.Model):
     def open_tablet_all_view(self):
         qty_production = self.qty_production
         qty_produced = self.qty_produced
-        for qty in range(int(qty_produced),int(qty_production)):
+        for _ in range(int(qty_produced),int(qty_production)):
             correlativo= self.env['ir.sequence'].next_by_code('mrp.series')
             barcode = self.production_id.product_id.as_sku
             self.final_lot_id = self.env['stock.production.lot'].create({

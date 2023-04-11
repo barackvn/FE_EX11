@@ -111,7 +111,7 @@ class TrialBalanceReportWizard(models.TransientModel):
             ])
         self.not_only_one_unaffected_earnings_account = count != 1
         if self.company_id and self.date_range_id.company_id and \
-                self.date_range_id.company_id != self.company_id:
+                    self.date_range_id.company_id != self.company_id:
             self.date_range_id = False
         if self.company_id and self.partner_ids:
             self.partner_ids = self.partner_ids.filtered(
@@ -134,19 +134,18 @@ class TrialBalanceReportWizard(models.TransientModel):
                }
         if not self.company_id:
             return res
-        else:
-            res['domain']['account_ids'] += [
-                ('company_id', '=', self.company_id.id)]
-            res['domain']['partner_ids'] += [
-                '&',
-                '|', ('company_id', '=', self.company_id.id),
-                ('company_id', '=', False),
-                ('parent_id', '=', False)]
-            res['domain']['date_range_id'] += [
-                '|', ('company_id', '=', self.company_id.id),
-                ('company_id', '=', False)]
-            res['domain']['journal_ids'] += [
-                ('company_id', '=', self.company_id.id)]
+        res['domain']['account_ids'] += [
+            ('company_id', '=', self.company_id.id)]
+        res['domain']['partner_ids'] += [
+            '&',
+            '|', ('company_id', '=', self.company_id.id),
+            ('company_id', '=', False),
+            ('parent_id', '=', False)]
+        res['domain']['date_range_id'] += [
+            '|', ('company_id', '=', self.company_id.id),
+            ('company_id', '=', False)]
+        res['domain']['journal_ids'] += [
+            ('company_id', '=', self.company_id.id)]
         return res
 
     @api.onchange('date_range_id')
@@ -174,7 +173,7 @@ class TrialBalanceReportWizard(models.TransientModel):
                 domain += [('internal_type', 'in', ('receivable', 'payable'))]
             elif self.receivable_accounts_only:
                 domain += [('internal_type', '=', 'receivable')]
-            elif self.payable_accounts_only:
+            else:
                 domain += [('internal_type', '=', 'payable')]
             self.account_ids = self.env['account.account'].search(domain)
         else:

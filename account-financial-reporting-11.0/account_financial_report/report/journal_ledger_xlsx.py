@@ -86,10 +86,7 @@ class JournalLedgerXslx(models.AbstractModel):
                 },
             ]
 
-        columns_as_dict = {}
-        for i, column in enumerate(columns):
-            columns_as_dict[i] = column
-        return columns_as_dict
+        return dict(enumerate(columns))
 
     def _get_journal_tax_columns(self, report):
         return {
@@ -148,26 +145,19 @@ class JournalLedgerXslx(models.AbstractModel):
         return 3
 
     def _get_report_filters(self, report):
-        target_label_by_value = {
-            value: label
-            for value, label in
+        target_label_by_value = dict(
             self.env['journal.ledger.report.wizard']._get_move_targets()
-        }
+        )
 
-        sort_option_label_by_value = {
-            value: label
-            for value, label in
+        sort_option_label_by_value = dict(
             self.env['journal.ledger.report.wizard']._get_sort_options()
-        }
+        )
 
         return [
-            [
-                _('Company'),
-                report.company_id.name
-            ],
+            [_('Company'), report.company_id.name],
             [
                 _('Date range filter'),
-                _('From: %s To: %s') % (report.date_from, report.date_to)
+                _('From: %s To: %s') % (report.date_from, report.date_to),
             ],
             [
                 _('Target moves filter'),
@@ -179,12 +169,13 @@ class JournalLedgerXslx(models.AbstractModel):
             ],
             [
                 _('Journals'),
-                ', '.join([
-                    "%s - %s" % (report_journal.code, report_journal.name)
-                    for report_journal in report.report_journal_ledger_ids
-                ])
-
-            ]
+                ', '.join(
+                    [
+                        f"{report_journal.code} - {report_journal.name}"
+                        for report_journal in report.report_journal_ledger_ids
+                    ]
+                ),
+            ],
         ]
 
     def _generate_report_content(self, workbook, report):
@@ -201,11 +192,7 @@ class JournalLedgerXslx(models.AbstractModel):
         self._generate_no_group_taxes_summary(workbook, report)
 
     def _generate_journal_content(self, workbook, report_journal):
-        sheet_name = "%s (%s) - %s" % (
-            report_journal.code,
-            report_journal.currency_id.name,
-            report_journal.name,
-        )
+        sheet_name = f"{report_journal.code} ({report_journal.currency_id.name}) - {report_journal.name}"
         self._generate_moves_content(
             workbook, report_journal.report_id, sheet_name,
             report_journal.report_move_ids)
@@ -216,11 +203,7 @@ class JournalLedgerXslx(models.AbstractModel):
             workbook, report, "Tax Report", report.report_tax_line_ids)
 
     def _generate_journal_taxes_summary(self, workbook, report_journal):
-        sheet_name = "Tax - %s (%s) - %s" % (
-            report_journal.code,
-            report_journal.currency_id.name,
-            report_journal.name,
-        )
+        sheet_name = f"Tax - {report_journal.code} ({report_journal.currency_id.name}) - {report_journal.name}"
         report = report_journal.report_id
         self._generate_taxes_summary(
             workbook, report, sheet_name, report_journal.report_tax_line_ids)

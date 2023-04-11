@@ -166,8 +166,7 @@ class OpenItemsReportCompute(models.TransientModel):
         result = {}
         rcontext = {}
         context = dict(self.env.context)
-        report = self.browse(context.get('active_id'))
-        if report:
+        if report := self.browse(context.get('active_id')):
             rcontext['o'] = report
             result['html'] = self.env.ref(
                 'account_financial_report.report_open_items').render(
@@ -401,30 +400,17 @@ FROM
                 account_move_line ml
                     ON ra.account_id = ml.account_id
         """
-        if not only_empty_partner_line:
-            sub_query += """
-                    AND rp.partner_id = ml.partner_id
+        sub_query += (
             """
-        elif only_empty_partner_line:
-            sub_query += """
                     AND ml.partner_id IS NULL
             """
-        if not positive_balance:
-            sub_query += """
-            LEFT JOIN
-                account_partial_reconcile pr
-                    ON ml.balance < 0 AND pr.credit_move_id = ml.id
-            LEFT JOIN
-                account_move_line ml_future
-                    ON ml.balance < 0 AND pr.debit_move_id = ml_future.id
-                    AND ml_future.date > %s
-            LEFT JOIN
-                account_move_line ml_past
-                    ON ml.balance < 0 AND pr.debit_move_id = ml_past.id
-                    AND ml_past.date <= %s
+            if only_empty_partner_line
+            else """
+                    AND rp.partner_id = ml.partner_id
             """
-        else:
-            sub_query += """
+        )
+        sub_query += (
+            """
             LEFT JOIN
                 account_partial_reconcile pr
                     ON ml.balance > 0 AND pr.debit_move_id = ml.id
@@ -437,6 +423,21 @@ FROM
                     ON ml.balance > 0 AND pr.credit_move_id = ml_past.id
                     AND ml_past.date <= %s
         """
+            if positive_balance
+            else """
+            LEFT JOIN
+                account_partial_reconcile pr
+                    ON ml.balance < 0 AND pr.credit_move_id = ml.id
+            LEFT JOIN
+                account_move_line ml_future
+                    ON ml.balance < 0 AND pr.debit_move_id = ml_future.id
+                    AND ml_future.date > %s
+            LEFT JOIN
+                account_move_line ml_past
+                    ON ml.balance < 0 AND pr.debit_move_id = ml_past.id
+                    AND ml_past.date <= %s
+            """
+        )
         sub_query += """
             WHERE
                 ra.report_id = %s
@@ -540,8 +541,14 @@ SELECT
     j.code AS journal,
     a.code AS account,
         """
-        if not only_empty_partner_line:
-            query_inject_move_line += """
+        query_inject_move_line += (
+            """
+    '"""
+            + _('No partner allocated')
+            + """' AS partner,
+            """
+            if only_empty_partner_line
+            else """
     CASE
         WHEN
             NULLIF(p.name, '') IS NOT NULL
@@ -550,10 +557,7 @@ SELECT
         ELSE p.name
     END AS partner,
             """
-        elif only_empty_partner_line:
-            query_inject_move_line += """
-    '""" + _('No partner allocated') + """' AS partner,
-            """
+        )
         query_inject_move_line += """
     CONCAT_WS(' - ', NULLIF(ml.ref, ''), NULLIF(ml.name, '')) AS label,
     ml.balance,
@@ -607,16 +611,17 @@ AND
 AND
     rp.partner_id IS NULL
         """
-        if not only_empty_partner_line:
-            query_inject_move_line += """
-ORDER BY
-    a.code, p.name, ml.date, ml.id
+        query_inject_move_line += (
             """
-        elif only_empty_partner_line:
-            query_inject_move_line += """
 ORDER BY
     a.code, ml.date, ml.id
             """
+            if only_empty_partner_line
+            else """
+ORDER BY
+    a.code, p.name, ml.date, ml.id
+            """
+        )
         self.env.cr.execute(
             query_inject_move_line,
             (self.date_at,
@@ -871,17 +876,18 @@ WHERE
             WHERE
                 ra.report_id = %s
         """
-        if not only_delete_account_balance_at_0:
-            query_clean_partners += """
-            AND rml.id IS NULL
+        query_clean_partners += (
             """
-        elif only_delete_account_balance_at_0:
-            query_clean_partners += """
             AND (
                 rp.final_amount_residual IS NULL
                 OR rp.final_amount_residual = 0
                 )
             """
+            if only_delete_account_balance_at_0
+            else """
+            AND rml.id IS NULL
+            """
+        )
         query_clean_partners += """
         )
         """
@@ -903,17 +909,18 @@ WHERE
             WHERE
                 ra.report_id = %s
         """
-        if not only_delete_account_balance_at_0:
-            query_clean_accounts += """
-            AND rp.id IS NULL
+        query_clean_accounts += (
             """
-        elif only_delete_account_balance_at_0:
-            query_clean_accounts += """
             AND (
                 ra.final_amount_residual IS NULL
                 OR ra.final_amount_residual = 0
                 )
             """
+            if only_delete_account_balance_at_0
+            else """
+            AND rp.id IS NULL
+            """
+        )
         query_clean_accounts += """
         )
         """
